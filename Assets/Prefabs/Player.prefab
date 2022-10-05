@@ -658,10 +658,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ad34f1c5a58dc8f418b3992f27318526, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 10
+  speed: 5
   rotation: 0
   gravity: 100
-  colliderRadius: 1.44
+  enemyDamage: 25
+  colliderRadius: 0.94
 --- !u!1 &3736223547149807694
 GameObject:
   m_ObjectHideFlags: 0
