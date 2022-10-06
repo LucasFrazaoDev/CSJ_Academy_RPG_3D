@@ -1,18 +1,118 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AI;
 
 public class Enemy : MonoBehaviour
 {
     public float totalHealth = 100f, currentHealth, attackDamage, movementSpeed;
+    public float colliderRadius;
 
+
+    // NavMesh settings
+    public float lookRadius = 10f;
+    public Transform target;
+    private NavMeshAgent agent;
+
+    private bool isReady;
+    private bool playerIsAlive;
     private Animator anim;
 
     private void Start()
     {
         anim = GetComponent<Animator>();
+        agent = GetComponent<NavMeshAgent>();
 
         currentHealth = totalHealth;
+        playerIsAlive = true;
+    }
+
+    private void Update()
+    {
+        if (currentHealth > 0)
+        {
+            float distance = Vector3.Distance(target.position, transform.position);
+
+            if (distance <= lookRadius)
+            {
+                agent.isStopped = false;
+                if (!anim.GetBool("SkeletonAttacking"))
+                {
+                    agent.SetDestination(target.position);
+                    anim.SetInteger("Transition", 2);
+                    anim.SetBool("SkeletonWalking", true);
+                }
+
+                if (distance <= agent.stoppingDistance)
+                {
+                    // attack execution
+                    StartCoroutine("Attack");
+                    LookTarget();
+                }
+
+                if (distance >= agent.stoppingDistance)
+                {
+                    anim.SetBool("SkeletonAttacking", false);
+                }
+            }
+            else
+            {
+                anim.SetInteger("Transition", 0);
+                anim.SetBool("SkeletonWalking", false);
+                anim.SetBool("SkeletonAttacking", false);
+                agent.isStopped = true;
+            }
+        }
+    }
+
+    IEnumerator Attack()
+    {
+        if (!isReady && playerIsAlive && !anim.GetBool("isHitting"))
+        {
+            isReady = true;
+            anim.SetBool("SkeletonAttacking", true);
+            anim.SetBool("SkeletonWalking", false);
+            anim.SetInteger("Transition", 1);
+
+            yield return new WaitForSeconds(1f);
+
+            GetEnemy();
+            yield return new WaitForSeconds(1.7f);
+            isReady = false;
+        }
+        if(!playerIsAlive)
+        {
+            anim.SetInteger("Transition", 0);
+            anim.SetBool("SkeletonWalking", false);
+            anim.SetBool("SkeletonAttacking", false);
+            agent.isStopped = true;
+        }
+    }
+
+    private void GetEnemy()
+    {
+        foreach (Collider collider in Physics.OverlapSphere((transform.position + transform.forward * colliderRadius), colliderRadius))
+        {
+            if (collider.gameObject.CompareTag("Player"))
+            {
+                // detecta o player
+                collider.gameObject.GetComponent<Player>().GetHit(25);
+                playerIsAlive = collider.gameObject.GetComponent<Player>().isAlive;
+            }
+        }
+    }
+
+    private void LookTarget()
+    {
+        Vector3 direction = (target.position - transform.position).normalized;
+        Quaternion lookRotation = Quaternion.LookRotation(new Vector3(direction.x, 0, direction.z));
+        transform.rotation = Quaternion.Slerp(transform.rotation, lookRotation, Time.deltaTime * 5f);
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.blue;
+        Gizmos.DrawWireSphere(transform.position, lookRadius);
     }
 
     public void GetHit(float damage)
@@ -25,7 +125,9 @@ public class Enemy : MonoBehaviour
         }
         else
         {
+            StopCoroutine("Attack");
             anim.SetInteger("Transition", 3);
+            anim.SetBool("isHitting", true);
             StartCoroutine(RecoveryFromhit());
         }
     }
@@ -34,6 +136,8 @@ public class Enemy : MonoBehaviour
     {
         yield return new WaitForSeconds(0.9f);
         anim.SetInteger("Transition", 0);
+        anim.SetBool("isHitting", false);
+        isReady = false;
     }
 
     private void Die()

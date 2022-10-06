@@ -4,11 +4,14 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
+    public float totalHealth = 100f;
+    public float currentHealth;
     public float speed;
     public float rotation;
     public float gravity;
     public float enemyDamage = 25f;
     public float colliderRadius;
+    public bool isAlive;
 
     private List<Transform> enemiesList = new List<Transform>();
     private bool isReady;
@@ -22,6 +25,9 @@ public class Player : MonoBehaviour
     {
         controller = GetComponent<CharacterController>();
         anim = GetComponent<Animator>();
+
+        currentHealth = totalHealth;
+        isAlive = true;
     }
 
     // Update is called once per frame
@@ -50,7 +56,7 @@ public class Player : MonoBehaviour
                     anim.SetBool("isWalking", false);
 
                     moveDirection = Vector3.zero;
-                    StartCoroutine(Attack(1));
+                    //StartCoroutine(Attack(1));
                 }
             }
 
@@ -85,15 +91,15 @@ public class Player : MonoBehaviour
                 if (!anim.GetBool("isWalking"))
                 {
                     // Executar ataque
-                    StartCoroutine(Attack(0));
+                    StartCoroutine("Attack");
                 }
             }
         }
     }
 
-    IEnumerator Attack(int transitionValue)
+    IEnumerator Attack()
     {
-        if (!isReady)
+        if (!isReady && !anim.GetBool("isHitting"))
         {
             isReady = true;
             anim.SetBool("isAttacking", true);
@@ -116,7 +122,7 @@ public class Player : MonoBehaviour
 
             yield return new WaitForSeconds(0.8f);
 
-            anim.SetInteger("Transition", transitionValue);
+            anim.SetInteger("Transition", 0);
             anim.SetBool("isAttacking", false);
             isReady = false;
         }
@@ -138,5 +144,39 @@ public class Player : MonoBehaviour
     {
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position + transform.forward, colliderRadius);
+    }
+
+    public void GetHit(float damage)
+    {
+        currentHealth -= damage;
+
+        if (currentHealth <= 0)
+        {
+            // Player morre
+            Die();
+            isAlive = false;
+        }
+        else
+        {
+            StopCoroutine("Attack");
+            anim.SetInteger("Transition", 3);
+            anim.SetBool("isHitting", true);
+            StartCoroutine(RecoveryFromhit());
+        }
+    }
+
+    private void Die()
+    {
+        anim.SetInteger("Transition", 4);
+        //Destroy(gameObject, 2f);
+    }
+
+    IEnumerator RecoveryFromhit()
+    {
+        yield return new WaitForSeconds(1.4f);
+        anim.SetInteger("Transition", 0);
+        anim.SetBool("isHitting", false);
+        isReady = false;
+        anim.SetBool("isAttacking", false);
     }
 }
