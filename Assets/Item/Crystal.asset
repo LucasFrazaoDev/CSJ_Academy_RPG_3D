@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44c2a2f7b85c4254b849a033bf590a25, type: 3}
   m_Name: Crystal
   m_EditorClassIdentifier: 
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: e7d29a79bc7fae248887c8a08a160303, type: 3}
   Name: Crystal
   value: 80
   ItemType: 2
+  SlotType: 1

@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.EventSystems;
 
 public class Player : MonoBehaviour
 {
@@ -12,6 +14,7 @@ public class Player : MonoBehaviour
     public float enemyDamage = 25f;
     public float colliderRadius;
     public bool isAlive;
+    public Image healthBar;
 
     private List<Transform> enemiesList = new List<Transform>();
     private bool isReady;
@@ -33,8 +36,11 @@ public class Player : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Move();
-        GetMouseInput();
+        if (EventSystem.current.currentSelectedGameObject == null)
+        {
+            Move();
+            GetMouseInput();
+        }
     }
 
     void Move()
@@ -150,6 +156,8 @@ public class Player : MonoBehaviour
     {
         currentHealth -= damage;
 
+        healthBar.fillAmount = currentHealth / totalHealth;
+
         if (currentHealth <= 0)
         {
             // Player morre
@@ -178,5 +186,17 @@ public class Player : MonoBehaviour
         anim.SetBool("isHitting", false);
         isReady = false;
         anim.SetBool("isAttacking", false);
+    }
+
+    public void IncreaseStats(float Health, float IncreaseSpeed)
+    {
+        currentHealth += Health;
+        speed += IncreaseSpeed;
+    }
+
+    public void DecreaseStats(float Health, float IncreaseSpeed)
+    {
+        currentHealth -= Health;
+        speed -= IncreaseSpeed;
     }
 }

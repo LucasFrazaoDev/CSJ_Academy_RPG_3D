@@ -1,12 +1,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.AI;
 
 public class Enemy : MonoBehaviour
 {
     public float totalHealth = 100f, currentHealth, attackDamage, movementSpeed;
     public float colliderRadius;
+    public Image healthBar;
 
 
     // NavMesh settings
@@ -118,6 +120,8 @@ public class Enemy : MonoBehaviour
     public void GetHit(float damage)
     {
         currentHealth -= damage;
+
+        healthBar.fillAmount = currentHealth / totalHealth;
 
         if (currentHealth <= 0)
         {
