@@ -10,6 +10,10 @@ public class Enemy : MonoBehaviour
     public float colliderRadius;
     public Image healthBar;
 
+    [Header("Path")]
+    public List<Transform> pathPoints = new List<Transform>();
+    public int currentPathIndex = 0;
+
 
     // NavMesh settings
     public float lookRadius = 10f;
@@ -27,6 +31,25 @@ public class Enemy : MonoBehaviour
 
         currentHealth = totalHealth;
         playerIsAlive = true;
+    }
+
+    void MoveToNextPoint()
+    {
+        if (pathPoints.Count > 0)
+        {
+            float distance = Vector3.Distance(pathPoints[currentPathIndex].position, transform.position);
+            agent.destination = pathPoints[currentPathIndex].position;
+
+            if (distance <= 4f)
+            {
+                //currentPathIndex++;
+                currentPathIndex = Random.Range(0, pathPoints.Count);
+                currentPathIndex %= pathPoints.Count;
+            }
+
+            anim.SetInteger("Transition", 2);
+            anim.SetBool("SkeletonWalking", true);
+        }
     }
 
     private void Update()
@@ -62,7 +85,8 @@ public class Enemy : MonoBehaviour
                 anim.SetInteger("Transition", 0);
                 anim.SetBool("SkeletonWalking", false);
                 anim.SetBool("SkeletonAttacking", false);
-                agent.isStopped = true;
+                //agent.isStopped = true;
+                MoveToNextPoint();
             }
         }
     }
